@@ -55,7 +55,7 @@ ORDER BY dt.YEAR, dt.MONTH, Profit;
 
 -- INVENTORY_FACT
 -- Top 10 proizvoda na stanju po različitim skladištima
-WITH RangiraniProizvodi AS (
+WITH RangiraniProizvodi AS ( -- CTE (Common Table Expression)
     SELECT dw.CITY_NAME AS "Lokacija skladišta",
            dp.CATEGORY_NAME AS "Kategorija proizvoda",
            dp.PRODUCT_NAME AS "Ime proizvoda",
@@ -69,13 +69,13 @@ WITH RangiraniProizvodi AS (
     JOIN DIM_PRODUCT dp ON ifc.DIM_PRODUCT_FK = dp.DIM_PRODUCT_ID
     GROUP BY dw.CITY_NAME, dp.PRODUCT_NAME
 )
-SELECT "Lokacija skladišta",
+SELECT "Ime proizvoda",
        "Kategorija proizvoda",
-       "Ime proizvoda",
+       "Lokacija skladišta",
        "Trenutno stanje"
 FROM RangiraniProizvodi
 WHERE br_reda <= 10
-ORDER BY "Lokacija skladišta", "Trenutno stanje" DESC;
+ORDER BY "Lokacija skladišta" ASC, "Trenutno stanje" DESC;
 
 -- Skladišta sa najvećom vrijednošću
 SELECT dw.CITY_NAME,
