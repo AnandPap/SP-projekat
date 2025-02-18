@@ -8,11 +8,12 @@ JOIN DIM_TIME dt ON ofc.ORDER_DATE_FK = dt.ORDER_DATE_ID
 GROUP BY dt.YEAR, dt.QUARTER
 ORDER BY dt.YEAR, dt.QUARTER;
 
--- Profit po kategoriji proizvoda
+-- Ostvareni profit po kategoriji proizvoda
 SELECT dp.CATEGORY_NAME AS "Ime kategorije",
        SUM(ofc.QUANTITY) AS "Ukupno narudžbi",
        CAST(SUM(ofc.QUANTITY * ofc.PROFIT_MARGIN) AS INTEGER) AS "Ukupni profit",
-       CAST(SUM(ofc.QUANTITY * ofc.PROFIT_MARGIN)/NULLIF(SUM(ofc.QUANTITY), 0) AS INTEGER) AS "Zarada po jedinici proizvoda"
+       CAST(SUM(ofc.QUANTITY * ofc.PROFIT_MARGIN)/NULLIF(SUM(ofc.QUANTITY), 0) AS INTEGER)
+       AS "Zarada po jedinici proizvoda"
 FROM ORDER_FACT ofc
 JOIN DIM_PRODUCT dp ON ofc.DIM_PRODUCT_FK = dp.DIM_PRODUCT_ID
 WHERE ofc.STATUS != 'Pending'
@@ -30,9 +31,10 @@ ORDER BY "Ukupna potrošnja kompanije kupca" DESC
 LIMIT 5;
 
 -- Uspjeh prodavača rangirano opadajuće
-SELECT de.FULL_NAME AS Ime,
+SELECT de.FULL_NAME AS "Ime uposlenika",
        COUNT(DISTINCT ofc.ORDER_ID) AS "Broj narudžbi",
-       CAST(SUM(ofc.QUANTITY * ofc.LIST_PRICE) AS INTEGER) AS "Ukupna vrijednost dogovorenih narudžbi"
+       CAST(SUM(ofc.QUANTITY * ofc.LIST_PRICE) AS INTEGER)
+       AS "Ukupna vrijednost dogovorenih narudžbi"
 FROM ORDER_FACT ofc
 JOIN DIM_EMPLOYEE de ON ofc.DIM_EMPLOYEE_FK = de.DIM_EMPLOYEE_ID
 GROUP BY de.FULL_NAME
@@ -50,8 +52,8 @@ GROUP BY dt.YEAR, dt.MONTH, ofc.STATUS
 ORDER BY dt.YEAR, dt.MONTH, Profit;
 
 -- INVENTORY_FACT
--- Top 10 proizvoda na stanju po različitim skladištima
-WITH RangiraniProizvodi AS ( -- CTE (Common Table Expression)
+-- Top 3 proizvoda na stanju po različitim skladištima
+WITH RangiraniProizvodi AS (
     SELECT dw.CITY_NAME AS "Lokacija skladišta",
            dp.CATEGORY_NAME AS "Kategorija proizvoda",
            dp.PRODUCT_NAME AS "Ime proizvoda",
@@ -70,11 +72,11 @@ SELECT "Ime proizvoda",
        "Lokacija skladišta",
        "Trenutno stanje"
 FROM RangiraniProizvodi
-WHERE br_reda <= 10
+WHERE br_reda <= 3
 ORDER BY "Lokacija skladišta" ASC, "Trenutno stanje" DESC;
 
 -- Skladišta sa najvećom vrijednošću
-SELECT dw.CITY_NAME,
+SELECT dw.CITY_NAME AS "Lokacija skladišta",
        CAST(SUM(ifc.QUANTITY * ifc.STANDARD_COST) AS INTEGER) AS "Ukupna vrijednost",
        CAST(SUM(ifc.QUANTITY * ifc.PROFIT_MARGIN) AS INTEGER) AS "Potencijalni profit"
 FROM INVENTORY_FACT ifc
@@ -82,8 +84,9 @@ JOIN DIM_WAREHOUSE dw ON ifc.DIM_WAREHOUSE_FK = dw.DIM_WAREHOUSE_ID
 GROUP BY dw.CITY_NAME
 ORDER BY "Ukupna vrijednost" DESC;
 
--- 10 najzastupljenijih proizvoda u skladištima
+-- Top 10 najzastupljenijih proizvoda u skladištima
 SELECT dp.PRODUCT_NAME AS "Ime proizvoda",
+       dp.CATEGORY_NAME AS "Kategorija proizvoda",
        SUM(ifc.QUANTITY) AS "Dostupna količina",
        dw.CITY_NAME AS "Lokacija skladišta"
 FROM INVENTORY_FACT ifc
